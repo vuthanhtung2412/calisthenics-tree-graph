@@ -1,24 +1,22 @@
+export const MUSCLE_GROUPS = [
+  'Chest',
+  'Back',
+  'Shoulders',
+  'Triceps',
+  'Biceps',
+  'Forearms',
+  'Abs',
+  'Obliques',
+  'Lower Back',
+  'Quads',
+  'Hamstrings/Glutes',
+] as const
+
+export type Muscle = (typeof MUSCLE_GROUPS)[number]
+
 export type Skill = {
   name: string
-  ref_url?: string 
+  ref_url?: string
   activated_muscles: Muscle[]
   prerequisites: Skill[]
 }
-
-const ALL_MUSCLE = [
-  "Chest",
-  "Back",
-  "Shoulders",
-  "Triceps",
-  "Biceps",
-  "Forearms",
-  "Abs",
-  "Obliques",
-  "Lower Back",
-  "Quads",
-  "Hamstrings/Glutes"
-] as const
-
-export type Muscle = typeof ALL_MUSCLE[number]
-
-

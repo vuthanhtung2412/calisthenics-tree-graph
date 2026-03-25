@@ -21,7 +21,8 @@ import {
 import '@xyflow/react/dist/style.css'
 
 import { SkillGraph, TOP_SKILLS } from './tree'
-import type { Skill } from './type'
+import { MUSCLE_GROUPS } from './type'
+import type { Muscle, Skill } from './type'
 
 const NODE_W = 200
 const NODE_H = 40
@@ -77,6 +78,21 @@ function filterElements(
       (e) => allowed.has(e.source) && allowed.has(e.target)
     ),
   }
+}
+
+/** Skill names that activate at least one of the selected muscles. Null if nothing selected = no muscle filter. */
+function namesMatchingMuscleFilter(
+  graph: Record<string, Skill>,
+  muscles: ReadonlySet<Muscle>
+): Set<string> | null {
+  if (muscles.size === 0) return null
+  const names = new Set<string>()
+  for (const s of Object.values(graph)) {
+    if (s.activated_muscles.some((m) => muscles.has(m))) {
+      names.add(s.name)
+    }
+  }
+  return names
 }
 
 function graphToElements(graph: Record<string, Skill>): {
@@ -155,23 +171,58 @@ function layoutDagre(
   return { nodes: nextNodes, edges }
 }
 
-function SkillGraphCanvas({ focusSkill }: { focusSkill: string | null }) {
+function SkillGraphCanvas({
+  focusSkill,
+  muscleFilter,
+}: {
+  focusSkill: string | null
+  muscleFilter: ReadonlySet<Muscle>
+}) {
+  const flowKey = useMemo(
+    () =>
+      `${focusSkill ?? 'all'}::${[...muscleFilter].sort().join('|')}`,
+    [focusSkill, muscleFilter]
+  )
+
   const { nodes, edges } = useMemo(() => {
     const raw = graphToElements(SkillGraph)
-    const subset =
-      focusSkill && SkillGraph[focusSkill]
-        ? filterElements(
-            raw.nodes,
-            raw.edges,
-            prerequisiteClosure(SkillGraph[focusSkill]!)
-          )
-        : raw
+    const muscleNames = namesMatchingMuscleFilter(SkillGraph, muscleFilter)
+
+    let allowed: Set<string>
+    if (focusSkill && SkillGraph[focusSkill]) {
+      allowed = prerequisiteClosure(SkillGraph[focusSkill])
+    } else {
+      allowed = new Set(Object.keys(SkillGraph))
+    }
+
+    if (muscleNames !== null) {
+      allowed = new Set([...allowed].filter((n) => muscleNames.has(n)))
+    }
+
+    const subset = filterElements(raw.nodes, raw.edges, allowed)
+    if (subset.nodes.length === 0) {
+      return { nodes: [] as Node[], edges: [] as Edge[] }
+    }
     return layoutDagre(subset.nodes, subset.edges, 'TB')
-  }, [focusSkill])
+  }, [focusSkill, muscleFilter])
+
+  if (nodes.length === 0) {
+    return (
+      <div
+        className="flex h-full w-full items-center justify-center bg-zinc-950 px-4 text-center text-sm text-zinc-500"
+        style={{ width: '100%', height: '100%' }}
+      >
+        <p className="max-w-sm">
+          No skills match the current filters. Clear the skill goal or muscle
+          filters and try again.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <ReactFlow
-      key={focusSkill ?? '__all__'}
+      key={flowKey}
       colorMode="dark"
       defaultNodes={nodes}
       defaultEdges={edges}
@@ -204,6 +255,16 @@ export function SkillGraphView() {
   const [listOpen, setListOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
   const [appliedFocus, setAppliedFocus] = useState<string | null>(null)
+  const [muscleFilter, setMuscleFilter] = useState<Set<Muscle>>(() => new Set())
+
+  const toggleMuscle = useCallback((m: Muscle) => {
+    setMuscleFilter((prev) => {
+      const next = new Set(prev)
+      if (next.has(m)) next.delete(m)
+      else next.add(m)
+      return next
+    })
+  }, [])
 
   const comboboxRef = useRef<HTMLDivElement>(null)
   const listboxRef = useRef<HTMLUListElement>(null)
@@ -219,10 +280,6 @@ export function SkillGraphView() {
     setQuery(name)
     setListOpen(false)
   }, [])
-
-  useEffect(() => {
-    setHighlight(0)
-  }, [query])
 
   useLayoutEffect(() => {
     if (!listOpen || filteredNames.length === 0) return
@@ -262,150 +319,182 @@ export function SkillGraphView() {
     return () => document.removeEventListener('keydown', onEscape, true)
   }, [listOpen])
 
-  const focusStats = useMemo(() => {
-    if (!appliedFocus || !SkillGraph[appliedFocus]) return null
-    const closure = prerequisiteClosure(SkillGraph[appliedFocus]!)
-    return {
-      total: closure.size,
-      prereqCount: closure.size - 1,
-    }
-  }, [appliedFocus])
-
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
-      <div className="flex shrink-0 flex-wrap items-end gap-2 border-b border-zinc-800 bg-zinc-950 px-3 py-2 sm:px-4">
-        <div
-          ref={comboboxRef}
-          className="relative flex min-w-[min(100%,16rem)] flex-1 flex-col gap-1 text-left"
-        >
-          <label
-            htmlFor="skill-search"
-            className="text-xs text-zinc-500"
+      <div className="flex shrink-0 flex-col gap-3 border-b border-zinc-800 bg-zinc-950 px-3 py-3 sm:px-4">
+        <div className="flex flex-wrap items-end gap-2">
+          <div
+            ref={comboboxRef}
+            className="relative flex min-w-[min(100%,16rem)] flex-1 flex-col gap-1 text-left"
           >
-            Skill to train
-          </label>
-          <input
-            id="skill-search"
-            type="text"
-            role="combobox"
-            aria-expanded={listOpen}
-            aria-controls="skill-search-list"
-            aria-activedescendant={
-              listOpen && filteredNames[highlight]
-                ? skillOptionId(filteredNames[highlight]!)
-                : undefined
-            }
-            autoComplete="off"
-            placeholder="Search skills…"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value)
-              setListOpen(true)
-            }}
-            onFocus={() => setListOpen(true)}
-            onKeyDown={(e) => {
-              if (e.key === 'Escape' || e.code === 'Escape') {
-                if (listOpen) {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setListOpen(false)
-                }
-                return
-              }
-              if (!listOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
-                setListOpen(true)
-                return
-              }
-              if (!listOpen) return
-              if (e.key === 'ArrowDown') {
-                e.preventDefault()
-                setHighlight((i) =>
-                  filteredNames.length === 0
-                    ? 0
-                    : (i + 1) % filteredNames.length
-                )
-                return
-              }
-              if (e.key === 'ArrowUp') {
-                e.preventDefault()
-                setHighlight((i) =>
-                  filteredNames.length === 0
-                    ? 0
-                    : (i - 1 + filteredNames.length) % filteredNames.length
-                )
-                return
-              }
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                const name = filteredNames[highlight]
-                if (name) pickSkill(name)
-                return
-              }
-            }}
-            className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/40"
-          />
-          {listOpen ? (
-            <ul
-              ref={listboxRef}
-              id="skill-search-list"
-              role="listbox"
-              className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto overflow-x-hidden rounded-md border border-zinc-700 bg-zinc-900 py-1 shadow-lg"
+            <label
+              htmlFor="skill-search"
+              className="text-xs text-zinc-500"
             >
-              {filteredNames.length === 0 ? (
-                <li className="px-3 py-2 text-sm text-zinc-500">
-                  No matching skills
-                </li>
-              ) : (
-                filteredNames.map((name, i) => (
-                  <li key={name} role="presentation">
-                    <button
-                      type="button"
-                      role="option"
-                      id={skillOptionId(name)}
-                      aria-selected={i === highlight}
-                      className={`flex w-full cursor-pointer px-3 py-2 text-left text-sm ${
-                        i === highlight
-                          ? 'bg-violet-600/25 text-zinc-100'
-                          : 'text-zinc-300 hover:bg-zinc-800'
-                      }`}
-                      onMouseEnter={() => setHighlight(i)}
-                      onMouseDown={(ev) => ev.preventDefault()}
-                      onClick={() => pickSkill(name)}
-                    >
-                      {name}
-                    </button>
+              Skill to train
+            </label>
+            <input
+              id="skill-search"
+              type="text"
+              role="combobox"
+              aria-expanded={listOpen}
+              aria-controls="skill-search-list"
+              aria-activedescendant={
+                listOpen && filteredNames[highlight]
+                  ? skillOptionId(filteredNames[highlight]!)
+                  : undefined
+              }
+              autoComplete="off"
+              placeholder="Search skills..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value)
+                setHighlight(0)
+                setListOpen(true)
+              }}
+              onFocus={() => setListOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' || e.code === 'Escape') {
+                  if (listOpen) {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setListOpen(false)
+                  }
+                  return
+                }
+                if (!listOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                  setListOpen(true)
+                  return
+                }
+                if (!listOpen) return
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  setHighlight((i) =>
+                    filteredNames.length === 0
+                      ? 0
+                      : (i + 1) % filteredNames.length
+                  )
+                  return
+                }
+                if (e.key === 'ArrowUp') {
+                  e.preventDefault()
+                  setHighlight((i) =>
+                    filteredNames.length === 0
+                      ? 0
+                      : (i - 1 + filteredNames.length) % filteredNames.length
+                  )
+                  return
+                }
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  const name = filteredNames[highlight]
+                  if (name) pickSkill(name)
+                  return
+                }
+              }}
+              className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1.5 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-violet-500/60 focus:ring-1 focus:ring-violet-500/40"
+            />
+            {listOpen ? (
+              <ul
+                ref={listboxRef}
+                id="skill-search-list"
+                role="listbox"
+                className="absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto overflow-x-hidden rounded-md border border-zinc-700 bg-zinc-900 py-1 shadow-lg"
+              >
+                {filteredNames.length === 0 ? (
+                  <li className="px-3 py-2 text-sm text-zinc-500">
+                    No matching skills
                   </li>
-                ))
-              )}
-            </ul>
-          ) : null}
+                ) : (
+                  filteredNames.map((name, i) => (
+                    <li key={name} role="presentation">
+                      <button
+                        type="button"
+                        role="option"
+                        id={skillOptionId(name)}
+                        aria-selected={i === highlight}
+                        className={`flex w-full cursor-pointer px-3 py-2 text-left text-sm ${
+                          i === highlight
+                            ? 'bg-violet-600/25 text-zinc-100'
+                            : 'text-zinc-300 hover:bg-zinc-800'
+                        }`}
+                        onMouseEnter={() => setHighlight(i)}
+                        onMouseDown={(ev) => ev.preventDefault()}
+                        onClick={() => pickSkill(name)}
+                      >
+                        {name}
+                      </button>
+                    </li>
+                  ))
+                )}
+              </ul>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            disabled={appliedFocus === null}
+            onClick={() => {
+              setAppliedFocus(null)
+              setQuery('')
+              setListOpen(false)
+            }}
+            className="rounded-md border border-zinc-600 bg-transparent px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Clear filter
+          </button>
         </div>
-        <button
-          type="button"
-          disabled={appliedFocus === null}
-          onClick={() => {
-            setAppliedFocus(null)
-            setQuery('')
-            setListOpen(false)
-          }}
-          className="rounded-md border border-zinc-600 bg-transparent px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Clear filter
-        </button>
-        {focusStats ? (
-          <p className="w-full text-left text-xs text-zinc-500 sm:ml-auto sm:w-auto">
-            <span className="text-zinc-300">{appliedFocus}</span>
-            {' · '}
-            {focusStats.total} skill{focusStats.total === 1 ? '' : 's'} (
-            {focusStats.prereqCount} prerequisite
-            {focusStats.prereqCount === 1 ? '' : 's'})
-          </p>
-        ) : null}
+
+        <div className="flex flex-col gap-1.5 text-left">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="text-xs font-medium text-zinc-400">
+              Muscle groups
+            </span>
+            <span className="text-xs text-zinc-600">
+              Show skills that use any selected muscle
+            </span>
+            {muscleFilter.size > 0 ? (
+              <button
+                type="button"
+                onClick={() => setMuscleFilter(new Set())}
+                className="text-xs text-violet-400 underline-offset-2 hover:underline"
+              >
+                Clear muscles
+              </button>
+            ) : null}
+          </div>
+          <div
+            className="flex flex-wrap gap-1.5"
+            role="group"
+            aria-label="Filter by muscle group"
+          >
+            {MUSCLE_GROUPS.map((m) => {
+              const on = muscleFilter.has(m)
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => toggleMuscle(m)}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                    on
+                      ? 'border-violet-500/60 bg-violet-600/25 text-violet-200'
+                      : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'
+                  }`}
+                >
+                  {m}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
       <div className="min-h-0 flex-1">
         <ReactFlowProvider>
           <div className="h-full w-full">
-            <SkillGraphCanvas focusSkill={appliedFocus} />
+            <SkillGraphCanvas
+              focusSkill={appliedFocus}
+              muscleFilter={muscleFilter}
+            />
           </div>
         </ReactFlowProvider>
       </div>
