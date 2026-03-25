@@ -50,7 +50,6 @@ export function SkillDetailPanel({
   return (
     <div className="pointer-events-none absolute inset-0 z-40 flex justify-end">
       <aside
-        key={skill.name}
         role="complementary"
         aria-label="Skill details"
         aria-labelledby="skill-detail-title"
