@@ -19,9 +19,17 @@ function register(
 function buildSkillGraph(): Record<string, Skill> {
   const m = new Map<string, Skill>();
 
-  // --- Core stability & patterns ---
+  // --- Absolute beginner: posture, core, and squat pattern ---
   register(m, "hollow body hold", ["Abs"]);
   register(m, "arch body hold", ["Back", "Shoulders", "Lower Back"]);
+  register(m, "assisted squat", ["Quads", "Hamstrings/Glutes", "Lower Back"]);
+  register(m, "bodyweight squat", ["Quads", "Hamstrings/Glutes", "Lower Back"], [
+    "assisted squat",
+  ]);
+  register(m, "compression sit", ["Abs", "Shoulders"]);
+  register(m, "side plank", ["Obliques", "Shoulders", "Abs"]);
+
+  // --- Hanging basics → vertical pull pattern ---
   register(m, "dead hang", ["Back", "Forearms"]);
   register(m, "active hang", ["Back", "Shoulders", "Biceps", "Forearms"], [
     "dead hang",
@@ -29,24 +37,50 @@ function buildSkillGraph(): Record<string, Skill> {
   register(m, "scapular pull-up", ["Back", "Shoulders", "Biceps"], [
     "active hang",
   ]);
+  register(m, "inverted row", ["Back", "Biceps", "Shoulders"], [
+    "scapular pull-up",
+  ]);
+  register(m, "negative pull-up", ["Back", "Biceps", "Forearms"], [
+    "inverted row",
+  ]);
+  register(m, "chin-up", ["Back", "Biceps", "Forearms"], ["negative pull-up"]);
+  register(m, "pull-up", ["Back", "Biceps", "Forearms"], ["chin-up"]);
 
-  // --- Baseline pulling & pushing ---
-  register(m, "pull-up", ["Back", "Biceps", "Forearms"], ["scapular pull-up"]);
-  register(m, "chin-up", ["Back", "Biceps", "Forearms"], ["pull-up"]);
-  register(m, "parallel bar support", ["Shoulders", "Triceps", "Chest"]);
+  // --- Push progressions (angled → full) ---
+  register(m, "incline push-up", ["Chest", "Shoulders", "Triceps"]);
+  register(m, "knee push-up", ["Chest", "Shoulders", "Triceps", "Abs"], [
+    "incline push-up",
+  ]);
+  register(m, "push-up", ["Chest", "Shoulders", "Triceps", "Abs"], [
+    "knee push-up",
+    "hollow body hold",
+  ]);
+  register(m, "diamond push-up", ["Chest", "Triceps", "Shoulders"], ["push-up"]);
+  register(m, "bench dip", ["Chest", "Shoulders", "Triceps"], [
+    "incline push-up",
+  ]);
+  register(m, "parallel bar support", ["Shoulders", "Triceps", "Chest"], [
+    "push-up",
+    "bench dip",
+  ]);
   register(m, "dip", ["Chest", "Shoulders", "Triceps"], [
     "parallel bar support",
   ]);
-  register(m, "push-up", ["Chest", "Shoulders", "Triceps", "Abs"]);
-  register(m, "bodyweight squat", ["Quads", "Hamstrings/Glutes", "Lower Back"]);
-  register(m, "compression sit", ["Abs", "Shoulders"]);
-  register(m, "side plank", ["Obliques", "Shoulders", "Abs"]);
 
   // --- Hanging core ---
   register(m, "hanging knee raise", ["Abs", "Forearms"], ["dead hang"]);
   register(m, "hanging leg raise", ["Abs", "Forearms"], [
     "hanging knee raise",
   ]);
+  register(m, "side leg raise", ["Abs", "Obliques", "Forearms"], [
+    "hanging leg raise",
+    "side plank",
+  ]);
+  register(m, "around the world hanging leg raise", [
+    "Abs",
+    "Obliques",
+    "Forearms",
+  ], ["side leg raise"]);
 
   // --- Handstand line ---
   register(m, "chest-to-wall handstand", ["Shoulders", "Triceps", "Abs"], [
@@ -152,8 +186,11 @@ function buildSkillGraph(): Record<string, Skill> {
 
   // --- Handstand push-up ---
   register(m, "pike push-up", ["Shoulders", "Triceps", "Chest"], ["push-up"]);
-  register(m, "handstand push-up", ["Shoulders", "Triceps", "Abs"], [
+  register(m, "elevated pike push-up", ["Shoulders", "Triceps", "Chest"], [
     "pike push-up",
+  ]);
+  register(m, "handstand push-up", ["Shoulders", "Triceps", "Abs"], [
+    "elevated pike push-up",
     "freestanding handstand",
   ]);
 
@@ -198,7 +235,7 @@ function buildSkillGraph(): Record<string, Skill> {
     "Hamstrings/Glutes",
     "Lower Back",
     "Abs",
-  ], ["assisted pistol squat", "hanging leg raise"]);
+  ], ["assisted pistol squat"]);
 
   return Object.fromEntries(m);
 }
