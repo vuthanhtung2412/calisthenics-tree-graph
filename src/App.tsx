@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 
+import { SkillGraph } from '@/graph'
 import { MuscleFilterBar } from '@/MuscleFilterBar'
+import { SkillDetailPanel } from '@/SkillDetailPanel'
 import { SkillGraphCanvas } from '@/SkillGraphCanvas'
 import { SkillSearchCombobox } from '@/SkillSearchCombobox'
 import type { Muscle } from '@/type'
@@ -11,6 +13,8 @@ function App() {
   const [listOpen, setListOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
   const [appliedFocus, setAppliedFocus] = useState<string | null>(null)
+  const [detailSkill, setDetailSkill] = useState<string | null>(null)
+  const [detailExiting, setDetailExiting] = useState(false)
   const [muscleFilter, setMuscleFilter] = useState<Set<Muscle>>(() => new Set())
 
   const toggleMuscle = useCallback((m: Muscle) => {
@@ -26,12 +30,28 @@ function App() {
     setAppliedFocus(name)
     setQuery(name)
     setListOpen(false)
+    setDetailSkill(name)
+    setDetailExiting(false)
   }, [])
 
   const clearSkillFilter = useCallback(() => {
     setAppliedFocus(null)
     setQuery('')
     setListOpen(false)
+    if (detailSkill) {
+      setDetailExiting(true)
+    } else {
+      setDetailSkill(null)
+    }
+  }, [detailSkill])
+
+  const requestCloseDetailPanel = useCallback(() => {
+    setDetailExiting(true)
+  }, [])
+
+  const completeDetailPanelExit = useCallback(() => {
+    setDetailSkill(null)
+    setDetailExiting(false)
   }, [])
 
   const clearMuscles = useCallback(() => {
@@ -58,7 +78,7 @@ function App() {
           onClearMuscles={clearMuscles}
         />
       </div>
-      <div className="min-h-0 flex-1">
+      <div className="relative min-h-0 flex-1">
         <ReactFlowProvider>
           <div className="h-full w-full">
             <SkillGraphCanvas
@@ -68,6 +88,17 @@ function App() {
             />
           </div>
         </ReactFlowProvider>
+        <SkillDetailPanel
+          skill={
+            detailSkill && SkillGraph[detailSkill]
+              ? SkillGraph[detailSkill]!
+              : null
+          }
+          exiting={detailExiting}
+          onExitComplete={completeDetailPanelExit}
+          onRequestClose={requestCloseDetailPanel}
+          onSelectSkill={pickSkill}
+        />
       </div>
     </div>
   )

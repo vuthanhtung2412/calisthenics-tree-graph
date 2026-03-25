@@ -13,6 +13,20 @@ export const SKILL_NAMES = Object.keys(SkillGraph).sort((a, b) =>
   a.localeCompare(b)
 )
 
+/** Skills that list `skillName` as a direct prerequisite (what becomes reachable next). */
+export function directDependents(
+  graph: Record<string, Skill>,
+  skillName: string
+): string[] {
+  const next: string[] = []
+  for (const s of Object.values(graph)) {
+    if (s.prerequisites.some((p) => p.name === skillName)) {
+      next.push(s.name)
+    }
+  }
+  return next.sort((a, b) => a.localeCompare(b))
+}
+
 /** The goal skill and every direct or indirect prerequisite. */
 export function prerequisiteClosure(skill: Skill): Set<string> {
   const names = new Set<string>()

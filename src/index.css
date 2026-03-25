@@ -1,1 +1,20 @@
 @import 'tailwindcss';
+
+@keyframes skill-panel-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.skill-panel-slide-in {
+  animation: skill-panel-slide-in 0.3s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skill-panel-slide-in {
+    animation: none;
+  }
+}
