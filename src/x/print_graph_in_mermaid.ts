@@ -1,5 +1,5 @@
-import { SkillGraph } from "../tree";
-import type { Skill } from "../type";
+import { SkillGraph } from '@/graph'
+import type { Skill } from '@/type'
 
 function escapeMermaidNodeLabel(text: string): string {
   return text

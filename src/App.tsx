@@ -1,4 +1,4 @@
-import { SkillGraphView } from './SkillGraphView'
+import { SkillGraphView } from '@/SkillGraphView'
 
 function App() {
   return (

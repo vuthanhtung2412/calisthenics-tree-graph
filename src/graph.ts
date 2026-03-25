@@ -1,4 +1,4 @@
-import type { Muscle, Skill } from "./type";
+import type { Muscle, Skill } from '@/type'
 
 function register(
   store: Map<string, Skill>,

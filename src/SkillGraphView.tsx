@@ -20,9 +20,9 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
-import { SkillGraph, TOP_SKILLS } from './tree'
-import { MUSCLE_GROUPS } from './type'
-import type { Muscle, Skill } from './type'
+import { SkillGraph, TOP_SKILLS } from '@/graph'
+import { MUSCLE_GROUPS } from '@/type'
+import type { Muscle, Skill } from '@/type'
 
 const NODE_W = 200
 const NODE_H = 40
