@@ -90,9 +90,12 @@ function buildSkillGraph(): Record<string, Skill> {
     "Forearms",
   ], ["side leg raise"]);
 
-  // --- Handstand line ---
-  register(m, "chest-to-wall handstand", ["Shoulders", "Triceps", "Abs"], [
+  // --- Handstand line (foot-elevated is easier stacked work before full wall line) ---
+  register(m, "foot-elevated handstand", ["Shoulders", "Triceps", "Abs"], [
     "push-up",
+  ]);
+  register(m, "chest-to-wall handstand", ["Shoulders", "Triceps", "Abs"], [
+    "foot-elevated handstand",
   ]);
   register(m, "freestanding handstand", ["Shoulders", "Triceps", "Abs"], [
     "chest-to-wall handstand",
