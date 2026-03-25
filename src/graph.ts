@@ -4,14 +4,20 @@ function register(
   store: Map<string, Skill>,
   name: string,
   muscles: Muscle[],
-  prereqNames: string[] = []
+  prereqNames: string[] = [],
+  refUrl?: string
 ): Skill {
   const prerequisites = prereqNames.map((n) => {
     const p = store.get(n);
     if (!p) throw new Error(`Unknown prerequisite "${n}" for "${name}"`);
     return p;
   });
-  const s: Skill = { name, activated_muscles: muscles, prerequisites };
+  const s: Skill = {
+    name,
+    activated_muscles: muscles,
+    prerequisites,
+    ...(refUrl ? { ref_url: refUrl } : {}),
+  };
   store.set(name, s);
   return s;
 }
@@ -88,7 +94,7 @@ function buildSkillGraph(): Record<string, Skill> {
     "Abs",
     "Obliques",
     "Forearms",
-  ], ["side leg raise"]);
+  ], ["side leg raise"], "https://www.youtube.com/watch?v=GPO2esSImjk");
 
   // --- Handstand line (foot-elevated is easier stacked work before full wall line) ---
   register(m, "foot-elevated handstand", ["Shoulders", "Triceps", "Abs"], [
@@ -271,7 +277,7 @@ function buildSkillGraph(): Record<string, Skill> {
     "Hamstrings/Glutes",
     "Lower Back",
     "Abs",
-  ], ["pistol squat"]);
+  ], ["pistol squat"], "https://framerusercontent.com/images/XLot0hZcaEDCOdpjiWPfYcddA.png");
 
   return Object.fromEntries(m);
 }

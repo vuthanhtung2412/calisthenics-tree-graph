@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react'
 
 import { SkillGraph } from '@/graph'
 import { directDependents, topNames } from '@/graphModel'
+import { SkillReferenceMedia } from '@/SkillReferenceMedia'
 import type { Skill } from '@/type'
 
 export function SkillDetailPanel({
@@ -86,16 +87,12 @@ export function SkillDetailPanel({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
           {skill.ref_url ? (
-            <p className="mb-4 text-sm">
-              <a
-                href={skill.ref_url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-violet-400 underline-offset-2 hover:underline"
-              >
+            <section className="mb-6" aria-label="Reference">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 Reference
-              </a>
-            </p>
+              </h3>
+              <SkillReferenceMedia url={skill.ref_url} title={skill.name} />
+            </section>
           ) : null}
 
           <section className="mb-6">
