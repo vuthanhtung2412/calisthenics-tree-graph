@@ -251,7 +251,7 @@ function buildSkillGraph(): Record<string, Skill> {
     "typewriter pull-up",
   ]);
 
-  // --- Single-leg strength (pistol) ---
+  // --- Single-leg strength (pistol) + hinge ---
   register(m, "assisted pistol squat", ["Quads", "Hamstrings/Glutes"], [
     "bodyweight squat",
   ]);
@@ -261,6 +261,17 @@ function buildSkillGraph(): Record<string, Skill> {
     "Lower Back",
     "Abs",
   ], ["assisted pistol squat"]);
+  register(m, "romanian lunges", [
+    "Hamstrings/Glutes",
+    "Lower Back",
+    "Quads",
+  ], ["bodyweight squat"]);
+  register(m, "dragon squat", [
+    "Quads",
+    "Hamstrings/Glutes",
+    "Lower Back",
+    "Abs",
+  ], ["pistol squat"]);
 
   return Object.fromEntries(m);
 }
@@ -268,14 +279,14 @@ function buildSkillGraph(): Record<string, Skill> {
 export const SkillGraph = buildSkillGraph();
 
 export const TOP_SKILLS: Skill[] = [
-  SkillGraph["back lever"]!,
-  SkillGraph["one-arm chin-up"]!,
-  SkillGraph["front lever"]!,
-  SkillGraph["dragon flag"]!,
-  SkillGraph["muscle-up"]!,
-  SkillGraph["planche"]!,
-  SkillGraph["human flag"]!,
-  SkillGraph["L sit"]!,
-  SkillGraph["handstand push-up"]!,
-  SkillGraph["pistol squat"]!,
+  SkillGraph["back lever"],
+  SkillGraph["one-arm chin-up"],
+  SkillGraph["front lever"],
+  SkillGraph["dragon flag"],
+  SkillGraph["muscle-up"],
+  SkillGraph["planche"],
+  SkillGraph["human flag"],
+  SkillGraph["L sit"],
+  SkillGraph["handstand push-up"],
+  SkillGraph["dragon squat"],
 ];
