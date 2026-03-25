@@ -23,11 +23,12 @@ import type { Muscle } from '@/type'
 export function SkillGraphCanvas({
   focusSkill,
   muscleFilter,
-  onSkillSelect,
+  onNodeClick,
 }: {
   focusSkill: string | null
   muscleFilter: ReadonlySet<Muscle>
-  onSkillSelect?: (skillName: string) => void
+  /** Opens skill details; does not change the graph filter. */
+  onNodeClick?: (skillName: string) => void
 }) {
   const flowKey = useMemo(
     () =>
@@ -85,7 +86,7 @@ export function SkillGraphCanvas({
       nodesConnectable={false}
       elementsSelectable
       onNodeClick={(_, node) => {
-        onSkillSelect?.(node.id)
+        onNodeClick?.(node.id)
       }}
       defaultEdgeOptions={{ type: 'smoothstep' }}
       proOptions={{ hideAttribution: true }}

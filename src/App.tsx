@@ -34,6 +34,12 @@ function App() {
     setDetailExiting(false)
   }, [])
 
+  /** Graph node click: open detail panel only; does not change the training filter. */
+  const openSkillDetailFromGraph = useCallback((name: string) => {
+    setDetailSkill(name)
+    setDetailExiting(false)
+  }, [])
+
   const clearSkillFilter = useCallback(() => {
     setAppliedFocus(null)
     setQuery('')
@@ -84,7 +90,7 @@ function App() {
             <SkillGraphCanvas
               focusSkill={appliedFocus}
               muscleFilter={muscleFilter}
-              onSkillSelect={pickSkill}
+              onNodeClick={openSkillDetailFromGraph}
             />
           </div>
         </ReactFlowProvider>
