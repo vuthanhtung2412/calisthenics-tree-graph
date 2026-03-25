@@ -29,6 +29,14 @@ function buildSkillGraph(): Record<string, Skill> {
   register(m, "compression sit", ["Abs", "Shoulders"]);
   register(m, "side plank", ["Obliques", "Shoulders", "Abs"]);
 
+  // --- Posterior chain / lower back (body line for planche & back lever) ---
+  register(m, "superman hold", ["Lower Back", "Back", "Hamstrings/Glutes"], [
+    "arch body hold",
+  ]);
+  register(m, "reverse hyperextension", ["Lower Back", "Back", "Hamstrings/Glutes"], [
+    "superman hold",
+  ]);
+
   // --- Hanging basics → vertical pull pattern ---
   register(m, "dead hang", ["Back", "Forearms"]);
   register(m, "active hang", ["Back", "Shoulders", "Biceps", "Forearms"], [
@@ -91,7 +99,16 @@ function buildSkillGraph(): Record<string, Skill> {
   ]);
 
   // --- Shoulder extension / rings-bar prep ---
-  register(m, "German hang", ["Shoulders", "Chest", "Biceps"], ["dead hang"]);
+  register(m, "supported German hang", ["Shoulders", "Chest", "Biceps", "Forearms"], [
+    "active hang",
+  ]);
+  register(m, "German hang negative", ["Shoulders", "Chest", "Biceps", "Back"], [
+    "supported German hang",
+    "scapular pull-up",
+  ]);
+  register(m, "German hang", ["Shoulders", "Chest", "Biceps"], [
+    "German hang negative",
+  ]);
   register(m, "skin the cat", ["Shoulders", "Back", "Abs"], [
     "German hang",
     "parallel bar support",
@@ -146,6 +163,7 @@ function buildSkillGraph(): Record<string, Skill> {
   register(m, "tuck back lever", ["Back", "Shoulders", "Triceps", "Biceps"], [
     "skin the cat",
     "inverted hang",
+    "reverse hyperextension",
   ]);
   register(m, "straddle back lever", ["Back", "Shoulders", "Triceps"], [
     "tuck back lever",
@@ -161,6 +179,7 @@ function buildSkillGraph(): Record<string, Skill> {
   register(m, "tuck planche", ["Chest", "Shoulders", "Triceps", "Abs"], [
     "pseudo planche lean",
     "hollow body hold",
+    "reverse hyperextension",
   ]);
   register(m, "advanced tuck planche", ["Chest", "Shoulders", "Triceps"], [
     "tuck planche",
@@ -199,8 +218,11 @@ function buildSkillGraph(): Record<string, Skill> {
     "hanging leg raise",
     "hollow body hold",
   ]);
-  register(m, "dragon flag", ["Abs", "Lower Back", "Shoulders"], [
+  register(m, "tuck dragon flag", ["Abs", "Lower Back", "Shoulders"], [
     "dragon flag negative",
+  ]);
+  register(m, "dragon flag", ["Abs", "Lower Back", "Shoulders"], [
+    "tuck dragon flag",
   ]);
 
   // --- Human flag ---
