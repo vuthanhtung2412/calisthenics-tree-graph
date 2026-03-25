@@ -19,6 +19,6 @@ const ALL_MUSCLE = [
   "Hamstrings/Glutes"
 ] as const
 
-type Muscle = typeof ALL_MUSCLE[number]
+export type Muscle = typeof ALL_MUSCLE[number]
 
 

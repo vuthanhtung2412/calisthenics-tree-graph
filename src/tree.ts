@@ -1,6 +1,4 @@
-import type { Skill } from "./type";
-
-type Muscle = Skill["activated_muscles"][number];
+import type { Muscle, Skill } from "./type";
 
 function register(
   store: Map<string, Skill>,
