@@ -174,9 +174,11 @@ function layoutDagre(
 function SkillGraphCanvas({
   focusSkill,
   muscleFilter,
+  onSkillSelect,
 }: {
   focusSkill: string | null
   muscleFilter: ReadonlySet<Muscle>
+  onSkillSelect?: (skillName: string) => void
 }) {
   const flowKey = useMemo(
     () =>
@@ -233,6 +235,9 @@ function SkillGraphCanvas({
       nodesDraggable
       nodesConnectable={false}
       elementsSelectable
+      onNodeClick={(_, node) => {
+        onSkillSelect?.(node.id)
+      }}
       defaultEdgeOptions={{ type: 'smoothstep' }}
       proOptions={{ hideAttribution: true }}
       className="bg-zinc-950"
@@ -494,6 +499,7 @@ export function SkillGraphView() {
             <SkillGraphCanvas
               focusSkill={appliedFocus}
               muscleFilter={muscleFilter}
+              onSkillSelect={pickSkill}
             />
           </div>
         </ReactFlowProvider>
