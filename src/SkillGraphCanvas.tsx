@@ -24,11 +24,14 @@ export function SkillGraphCanvas({
   focusSkill,
   muscleFilter,
   onNodeClick,
+  onNodeDoubleClick,
 }: {
   focusSkill: string | null
   muscleFilter: ReadonlySet<Muscle>
   /** Opens skill details; does not change the graph filter. */
   onNodeClick?: (skillName: string) => void
+  /** Sets the training filter (skill to train + prerequisite view). */
+  onNodeDoubleClick?: (skillName: string) => void
 }) {
   const flowKey = useMemo(
     () =>
@@ -87,6 +90,9 @@ export function SkillGraphCanvas({
       elementsSelectable
       onNodeClick={(_, node) => {
         onNodeClick?.(node.id)
+      }}
+      onNodeDoubleClick={(_, node) => {
+        onNodeDoubleClick?.(node.id)
       }}
       defaultEdgeOptions={{ type: 'smoothstep' }}
       proOptions={{ hideAttribution: true }}

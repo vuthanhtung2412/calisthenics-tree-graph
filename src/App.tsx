@@ -91,6 +91,7 @@ function App() {
               focusSkill={appliedFocus}
               muscleFilter={muscleFilter}
               onNodeClick={openSkillDetailFromGraph}
+              onNodeDoubleClick={pickSkill}
             />
           </div>
         </ReactFlowProvider>
