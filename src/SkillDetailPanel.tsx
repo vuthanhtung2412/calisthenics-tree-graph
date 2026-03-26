@@ -4,6 +4,7 @@ import { SkillGraph } from '@/graph'
 import { directDependents, topNames } from '@/graphModel'
 import { SkillReferenceMedia } from '@/SkillReferenceMedia'
 import type { Skill } from '@/type'
+import { useResizablePanelWidth } from '@/useResizablePanelWidth'
 
 export function SkillDetailPanel({
   skill,
@@ -18,10 +19,12 @@ export function SkillDetailPanel({
   onRequestClose: () => void
   onSelectSkill: (name: string) => void
 }) {
+  const { w: panelW, onResizeDown } = useResizablePanelWidth()
+
   useEffect(() => {
     if (!skill || exiting) return
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape' || e.code === 'Escape') {
+      if (e.key === 'Escape') {
         e.preventDefault()
         onRequestClose()
       }
@@ -56,12 +59,18 @@ export function SkillDetailPanel({
         aria-labelledby="skill-detail-title"
         aria-hidden={exiting}
         onTransitionEnd={onAsideTransitionEnd}
-        className={`pointer-events-auto flex h-full w-full max-w-md flex-col border-l border-zinc-800 bg-zinc-950/95 shadow-[-12px_0_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-sm motion-reduce:transition-none ${
+        style={{ maxWidth: panelW }}
+        className={`pointer-events-auto relative flex h-full w-full flex-col border-l border-zinc-800 bg-zinc-950/95 shadow-[-12px_0_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-sm motion-reduce:transition-none ${
           exiting
             ? 'translate-x-full transition-transform duration-300 ease-out motion-reduce:translate-x-full motion-reduce:duration-0'
             : 'translate-x-0 skill-panel-slide-in'
         }`}
       >
+        <div
+          aria-label="Resize panel"
+          onPointerDown={onResizeDown}
+          className="absolute left-0 top-0 z-10 h-full w-2 -translate-x-1/2 cursor-col-resize touch-none hover:bg-violet-500/15"
+        />
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-zinc-800 px-4 py-4">
           <div className="min-w-0 flex-1">
             <h2
