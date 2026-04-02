@@ -5,7 +5,8 @@ function register(
   name: string,
   muscles: Muscle[],
   prereqNames: string[] = [],
-  refUrl?: string
+  refUrl?: string,
+  formNotes?: string
 ): Skill {
   const prerequisites = prereqNames.map((n) => {
     const p = store.get(n);
@@ -16,6 +17,7 @@ function register(
     name,
     activated_muscles: muscles,
     prerequisites,
+    formNotes: formNotes ?? '',
     ...(refUrl ? { ref_url: refUrl } : {}),
   };
   store.set(name, s);
@@ -43,7 +45,11 @@ function buildSkillGraph(): Record<string, Skill> {
   register(m, "active hang", ["Back", "Shoulders", "Biceps", "Forearms"], ["dead hang"],
     "https://www.youtube.com/watch?v=mcwBX6AK62U");
   register(m, "scapular pull-up", ["Back", "Shoulders", "Biceps"], ["active hang"]);
-  register(m, "australian pull-up", ["Back", "Biceps", "Shoulders"], ["scapular pull-up"]); // NEW BRIDGE
+  register(m, "australian pull-up", ["Back", "Biceps", "Shoulders"], ["scapular pull-up"], "https://youtu.be/bHO0A4ZF_Zg?si=yswKpZEuVoElFk6O", `
+  + **DO NOT** bend your back forward, hold it straight and engage your abs
+
+  + Make sure your *scapular* is touching, when pull
+  `);
   register(m, "inverted row", ["Back", "Biceps", "Shoulders"], ["australian pull-up"]);
   register(m, "negative pull-up", ["Back", "Biceps", "Forearms"], ["inverted row"]);
   register(m, "chin-up", ["Back", "Biceps", "Forearms"], ["negative pull-up"]);

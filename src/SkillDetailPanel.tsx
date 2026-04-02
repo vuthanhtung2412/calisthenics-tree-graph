@@ -1,10 +1,26 @@
 import { useCallback, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 
 import { SkillGraph } from '@/graph'
 import { directDependents, topNames } from '@/graphModel'
 import { SkillReferenceMedia } from '@/SkillReferenceMedia'
 import type { Skill } from '@/type'
 import { useResizablePanelWidth } from '@/useResizablePanelWidth'
+
+const formNotesMarkdownClassName = [
+  'text-sm leading-relaxed text-zinc-400',
+  '[&_a]:text-violet-400/90 [&_a]:underline-offset-2 hover:[&_a]:underline',
+  '[&_code]:rounded [&_code]:bg-zinc-900 [&_code]:px-1 [&_code]:py-0.5',
+  '[&_code]:font-mono [&_code]:text-xs',
+  '[&_h1]:text-base [&_h1]:font-semibold [&_h1]:text-zinc-300',
+  '[&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-zinc-300',
+  '[&_h3]:text-sm [&_h3]:font-medium [&_h3]:text-zinc-300',
+  '[&_p]:my-2 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0',
+  '[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5',
+  '[&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5',
+  '[&_li]:my-0.5',
+  '[&_strong]:font-semibold [&_strong]:text-zinc-300',
+].join(' ')
 
 export function SkillDetailPanel({
   skill,
@@ -60,11 +76,10 @@ export function SkillDetailPanel({
         aria-hidden={exiting}
         onTransitionEnd={onAsideTransitionEnd}
         style={{ maxWidth: panelW }}
-        className={`pointer-events-auto relative flex h-full w-full flex-col border-l border-zinc-800 bg-zinc-950/95 shadow-[-12px_0_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-sm motion-reduce:transition-none ${
-          exiting
+        className={`pointer-events-auto relative flex h-full w-full flex-col border-l border-zinc-800 bg-zinc-950/95 shadow-[-12px_0_24px_-8px_rgba(0,0,0,0.5)] backdrop-blur-sm motion-reduce:transition-none ${exiting
             ? 'translate-x-full transition-transform duration-300 ease-out motion-reduce:translate-x-full motion-reduce:duration-0'
             : 'translate-x-0 skill-panel-slide-in'
-        }`}
+          }`}
       >
         <div
           aria-label="Resize panel"
@@ -95,78 +110,93 @@ export function SkillDetailPanel({
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          {skill.ref_url ? (
-            <section className="mb-6" aria-label="Reference">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                Reference
+          <div className="divide-y divide-zinc-800 [&>section]:py-6 [&>section:first-child]:pt-0 [&>section:last-child]:pb-0">
+            {skill.ref_url ? (
+              <section aria-label="Reference">
+                <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-100">
+                  Reference
+                </h3>
+                <SkillReferenceMedia url={skill.ref_url} title={skill.name} />
+              </section>
+            ) : null}
+
+            <section>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-100">
+                Muscles
               </h3>
-              <SkillReferenceMedia url={skill.ref_url} title={skill.name} />
+              <ul className="flex flex-wrap gap-1.5">
+                {skill.activated_muscles.map((m) => (
+                  <li
+                    key={m}
+                    className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-0.5 text-xs text-zinc-300"
+                  >
+                    {m}
+                  </li>
+                ))}
+              </ul>
             </section>
-          ) : null}
 
-          <section className="mb-6">
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              Muscles
-            </h3>
-            <ul className="flex flex-wrap gap-1.5">
-              {skill.activated_muscles.map((m) => (
-                <li
-                  key={m}
-                  className="rounded-full border border-zinc-700 bg-zinc-900 px-2.5 py-0.5 text-xs text-zinc-300"
-                >
-                  {m}
-                </li>
-              ))}
-            </ul>
-          </section>
+            <section>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-100">
+                Prerequisites
+              </h3>
+              {prereqNames.length === 0 ? (
+                <p className="text-sm text-zinc-600">None listed</p>
+              ) : (
+                <ul className="space-y-1">
+                  {prereqNames.map((name) => (
+                    <li key={name}>
+                      <button
+                        type="button"
+                        onClick={() => onSelectSkill(name)}
+                        className="text-left text-sm text-violet-400/90 underline-offset-2 hover:underline"
+                      >
+                        {name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
 
-          <section className="mb-6">
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              Prerequisites
-            </h3>
-            {prereqNames.length === 0 ? (
-              <p className="text-sm text-zinc-600">None listed</p>
-            ) : (
-              <ul className="space-y-1">
-                {prereqNames.map((name) => (
-                  <li key={name}>
-                    <button
-                      type="button"
-                      onClick={() => onSelectSkill(name)}
-                      className="text-left text-sm text-violet-400/90 underline-offset-2 hover:underline"
-                    >
-                      {name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+            <section>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-100">
+                Unlocks next
+              </h3>
+              {unlocks.length === 0 ? (
+                <p className="text-sm text-zinc-600">
+                  No further skills in this graph — end of this branch.
+                </p>
+              ) : (
+                <ul className="space-y-1">
+                  {unlocks.map((name) => (
+                    <li key={name}>
+                      <button
+                        type="button"
+                        onClick={() => onSelectSkill(name)}
+                        className="text-left text-sm text-violet-400/90 underline-offset-2 hover:underline"
+                      >
+                        {name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
 
-          <section>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-              Unlocks next
-            </h3>
-            {unlocks.length === 0 ? (
-              <p className="text-sm text-zinc-600">
-                No further skills in this graph — end of this branch.
-              </p>
-            ) : (
-              <ul className="space-y-1">
-                {unlocks.map((name) => (
-                  <li key={name}>
-                    <button
-                      type="button"
-                      onClick={() => onSelectSkill(name)}
-                      className="text-left text-sm text-violet-400/90 underline-offset-2 hover:underline"
-                    >
-                      {name}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+            <section aria-label="Form notes">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-100">
+                Atentions to form
+              </h3>
+              {skill.formNotes ? (
+                <div className={formNotesMarkdownClassName}>
+                  <ReactMarkdown>{skill.formNotes}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-sm text-zinc-600">No notes yet.</p>
+              )}
+            </section>
+          </div>
         </div>
       </aside>
     </div>
